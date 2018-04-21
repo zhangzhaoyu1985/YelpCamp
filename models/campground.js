@@ -4,6 +4,13 @@ var campgroundSchema = new mongoose.Schema({
     name: String,
     image: String,
     description: String,
+    author: {
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
+        username: String,
+    },
     // embedding comment ids to campground (not comment content)
     comments: [
         {

@@ -16,12 +16,16 @@ router.get("/", function(req, res) {
 
 // REST naming convention - same route but different method, GET and POST
 // [RESTFUL] CREATE - add new campground to DB
-router.post("/", function(req, res) {
+router.post("/", isLoggedIn, function(req, res) {
     // get data from from and add to campgrounds array
     var name = req.body.name;
     var image = req.body.image;
     var desc = req.body.description;
-    var newCampground = {name: name, image: image, description: desc};
+    var author = {
+        id: req.user._id,
+        username: req.user.username,
+    }
+    var newCampground = {name: name, image: image, description: desc, author: author};
     
     // Create a new campround and save to DB
     Campground.create(newCampground, function (err, newlyCreated) {
@@ -35,7 +39,7 @@ router.post("/", function(req, res) {
 });
 
 // [RESTFUL] NEW - show form to create new campground
-router.get("/new", function(req, res) {
+router.get("/new", isLoggedIn, function(req, res) {
     res.render("campgrounds/new");
 });
 
@@ -48,10 +52,38 @@ router.get("/:id", function(req, res) {
         if (err) {
             console.log(err);
         } else {
-            console.log(foundCampground);
             // render show template with that campground
             res.render("campgrounds/show", {campground: foundCampground});
         }
+    });
+});
+
+// EDIT CAMPGROUND ROUTE
+router.get("/:id/edit", checkCampgroundOwnership, function(req, res) {
+    Campground.findById(req.params.id, function(err, foundCampground) {
+        res.render("campgrounds/edit", {campground:foundCampground}); 
+    });
+});
+// UPDATE CAMPGROUND ROUTE
+router.put("/:id", checkCampgroundOwnership, function(req, res) {
+    // find and update the correct campground
+    Campground.findByIdAndUpdate(req.params.id, req.body.campground, function(err, updatedCampground) {
+       if (err) {
+           res.redirect("/campgrounds");
+       } else {
+           res.redirect("/campgrounds/" + req.params.id);
+       }
+    });
+    // redirect to show page
+});
+
+// DESTORY CAMPGROUND ROUTE
+router.delete("/:id", checkCampgroundOwnership, function(req, res) {
+    Campground.findByIdAndRemove(req.params.id, function(err) {
+       if (err) {
+           res.redirect("/campgrounds");
+       } 
+       res.redirect("/campgrounds");
     });
 });
 
@@ -61,6 +93,27 @@ function isLoggedIn(req, res, next) {
         return next();
     }
     res.redirect("/login");
+}
+
+function checkCampgroundOwnership(req, res, next) {
+    // if user logged in:
+    if (req.isAuthenticated()) {
+        Campground.findById(req.params.id, function(err, foundCampground) {
+            if (err) {
+                res.redirect("/campgrounds");
+            } else {
+                //  if user owns the campground:
+                if (foundCampground.author.id.equals(req.user._id)) {
+                    next();
+                } else {
+                    res.redirect("back");
+                }
+            }
+        });
+    } else {
+        // redirect to previous page
+        res.redirect("back");
+    }
 }
 
 module.exports = router;
