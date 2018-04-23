@@ -5,10 +5,10 @@ var mongoose    = require("mongoose");
 var passport    = require("passport");
 var LocalStrategy = require("passport-local");
 var methodOverride = require("method-override");
-var Campground  = require("./models/campground");
+var flash       = require("connect-flash");
 var User        = require("./models/user");
-var Comment     = require("./models/comment");
 var seedDB      = require("./seeds");
+
 
 // requiring routes
 var commentRoutes    = require("./routes/comments");
@@ -21,6 +21,7 @@ app.set("view engine", "ejs");
 // __dirname: the directory the script currently running
 app.use(express.static(__dirname + "/public"));
 app.use(methodOverride("_method"));
+app.use(flash());
 //seedDB(); // seed the database
 
 // PASSPORT CONFIGURATION
@@ -38,6 +39,9 @@ passport.deserializeUser(User.deserializeUser());
 // middleware to pass currentUser to every route
 app.use(function(req, res, next) {
     res.locals.currentUser = req.user;
+    // key "error" is set in middleware/index.js
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
     next();
 });
 

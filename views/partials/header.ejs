@@ -26,4 +26,19 @@
                 </div>
             </div>
         </nav>
+        <!--https://getbootstrap.com/docs/3.3/components/#alerts-->
+        <div class="container">
+            <% if (error && error.length > 0) { %>
+                <div class="alert alert-danger" role="alert">
+                    <%= error %>
+                </div>
+            <% } %>
+        </div>
+        <div class="container">
+            <% if (success && success.length > 0) { %>
+                <div class="alert alert-success" role="alert">
+                    <%= success %>
+                </div>
+            <% } %>
+        </div>
         
