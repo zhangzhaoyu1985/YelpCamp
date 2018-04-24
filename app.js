@@ -1,39 +1,53 @@
-var express = require("express");
-var app = express();
-var bodyParser = require("body-parser");
+var express     = require("express");
+var app         = express();
+var bodyParser  = require("body-parser");
+var mongoose    = require("mongoose");
+var passport    = require("passport");
+var LocalStrategy = require("passport-local");
+var methodOverride = require("method-override");
+var flash       = require("connect-flash");
+var User        = require("./models/user");
+var seedDB      = require("./seeds");
 
+
+// requiring routes
+var commentRoutes    = require("./routes/comments");
+var campgroundRoutes = require("./routes/campgrounds");
+var indexRoutes      = require("./routes/index");
+
+mongoose.connect("mongodb://localhost/yelp_camp");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
+// __dirname: the directory the script currently running
+app.use(express.static(__dirname + "/public"));
+app.use(methodOverride("_method"));
+app.use(flash());
+//seedDB(); // seed the database
 
-var campgrounds = [
-    {name: "Salmon Creek", image: "https://farm2.staticflickr.com/1086/882244782_d067df2717.jpg"},
-    {name: "Granite Hill", image: "https://farm8.staticflickr.com/7268/7121859753_e7f787dc42.jpg"},
-    {name: "Mountain Goat's Rest", image: "https://pixabay.com/get/e837b50928f0043ed1584d05fb1d4e97e07ee3d21cac104497f3c579a4ebb3bf_340.jpg"},
-];
+// PASSPORT CONFIGURATION
+app.use(require("express-session")({
+    secret: "Once again Rusty wins cutest dog",
+    resave: false,
+    saveUninitialized: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
-app.get("/", function(req, res) {
-    res.render("landing");
+// middleware to pass currentUser to every route
+app.use(function(req, res, next) {
+    res.locals.currentUser = req.user;
+    // key "error" is set in middleware/index.js
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
+    next();
 });
 
-app.get("/campgrounds", function(req, res) {
-    res.render("campgrounds", {campgrounds: campgrounds});
-});
-
-// REST naming convention - same route but different method, GET and POST
-app.post("/campgrounds", function(req, res) {
-    // get data from from and add to campgrounds array
-    var name = req.body.name;
-    var image = req.body.image;
-    
-    var newCampground = {name: name, image: image};
-    campgrounds.push(newCampground);
-    res.redirect("/campgrounds");
-    // redirect back to campgrounds page
-});
-
-app.get("/campgrounds/new", function(req, res) {
-    res.render("new.ejs");
-});
+app.use("/", indexRoutes);
+app.use("/campgrounds", campgroundRoutes);
+app.use("/campgrounds/:id/comments", commentRoutes);
 
 app.listen(process.env.PORT, process.env.IP, function() {
     console.log("The YelpCamp Server Has Started!");

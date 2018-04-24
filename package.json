@@ -1,7 +1,7 @@
 {
   "name": "yelp_camp",
   "version": "1.0.0",
-  "description": "",
+  "description": "YelpCamp",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -28,7 +28,14 @@
   "homepage": "https://github.com/zhangzhaoyu1985/YelpCamp#readme",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "connect-flash": "^0.1.1",
     "ejs": "^2.5.8",
-    "express": "^4.16.3"
+    "express": "^4.16.3",
+    "express-session": "^1.15.6",
+    "method-override": "^2.3.10",
+    "mongoose": "^5.0.14",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
+    "passport-local-mongoose": "^5.0.0"
   }
 }
