@@ -19,7 +19,11 @@ var indexRoutes      = require("./routes/index");
 //mongoose.connect("mongodb://localhost/yelp_camp");
 
 // mLab DB -- production
-mongoose.connect("mongodb://neverlandzzy:322118@ds027425.mlab.com:27425/yelpcamp_neverlandzzy");
+//mongoose.connect("mongodb://neverlandzzy:322118@ds027425.mlab.com:27425/yelpcamp_neverlandzzy");
+
+// Automatically set DB URL using environment variable
+var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp";
+mongoose.connect(url);
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
